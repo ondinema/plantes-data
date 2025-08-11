@@ -1,0 +1,682 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Cueillir & fabriquer — recettes & usages</title>
+  <style>
+    :root{
+      --bg:#FAF6EF; --panel:#FFFFFF; --alt:#F7F1E6; --muted:#E2D9C8; --text:#2B2B2B; --sub:#6E6A62;
+      --accent:#2E7D32; --accent-soft:#E7F3E8; --brown:#7A5C3A; --chip:#F2E8D9; --overlay: rgba(60,45,30,.35);
+      --like:#2e7d32; --fav:#C17900; --danger:#b00020;
+    }
+    html,body{background:var(--bg); color:var(--text); font:16px/1.5 system-ui,-apple-system,Segoe UI,Roboto,"Helvetica Neue",Arial; margin:0}
+    .wrap{max-width:1100px; margin:0 auto; padding:20px}
+    header h1{font-size:26px; margin:0 0 6px}
+    header p{margin:0; color:var(--sub)}
+    .toolbar{display:flex; gap:10px; flex-wrap:wrap; align-items:center; margin:16px 0 8px}
+    .search{flex:1 1 360px; display:flex; position:relative}
+    .search input{width:100%; border-radius:12px; border:1px solid var(--muted); background:var(--panel); color:var(--text); padding:12px 42px 12px 12px; outline:none}
+    .search .clear{position:absolute; right:6px; top:6px; background:transparent; color:var(--sub); border:0; padding:6px 10px; cursor:pointer}
+    .seg{display:flex; border:1px solid var(--muted); border-radius:12px; overflow:hidden}
+    .seg button{background:var(--panel); color:var(--sub); border:0; padding:10px 14px; cursor:pointer}
+    .seg button.active{background:var(--accent-soft); color:var(--text)}
+    .btn{background:var(--chip); border:1px solid var(--muted); color:var(--text); padding:9px 12px; border-radius:10px; cursor:pointer}
+    .btn.primary{background:var(--accent); border-color:#246327; color:#fff}
+    .btn.danger{background:#ffe8e8; border-color:#ffbdbd; color:var(--danger)}
+    .chips{display:flex; gap:8px; flex-wrap:wrap; align-items:center; margin:8px 0 0}
+    .chip{background:var(--chip); border:1px solid var(--muted); padding:6px 10px; border-radius:999px; cursor:pointer; color:var(--text); font-size:14px}
+    .chip.active{outline:2px solid var(--accent)}
+    .grid{display:grid; grid-template-columns:repeat(1,minmax(0,1fr)); gap:10px}
+    @media(min-width:720px){.grid{grid-template-columns:repeat(2,minmax(0,1fr));}}
+    @media(min-width:1024px){.grid{grid-template-columns:repeat(3,minmax(0,1fr));}}
+    .card{background:var(--panel); border:1px solid var(--muted); border-radius:16px; padding:14px; display:flex; flex-direction:column; gap:8px; cursor:pointer}
+    .thumb{width:100%; height:140px; object-fit:cover; border-radius:12px; border:1px solid var(--muted)}
+    .title{display:flex; align-items:baseline; gap:8px}
+    .title h3{margin:0; font-size:18px}
+    .latin{color:var(--sub); font-style:italic; font-size:14px}
+    .meta{display:flex; gap:8px; flex-wrap:wrap}
+    .meta .pill{background:var(--chip); border:1px solid var(--muted); color:var(--text); padding:4px 8px; border-radius:999px; font-size:12px}
+    .hidden{display:none}
+    footer{margin:24px 0 10px; color:var(--sub); font-size:13px}
+    .tag{font-size:11px; padding:2px 6px; border-radius:6px; border:1px solid var(--muted); background:var(--chip); color:var(--text)}
+    .overlay{position:fixed; inset:0; background:var(--overlay); backdrop-filter: blur(2px);} 
+    .modal{position:fixed; left:50%; top:50%; transform:translate(-50%,-50%); width:min(900px, 94vw); max-height:88vh; overflow:auto; background:var(--panel); border:1px solid var(--muted); border-radius:16px; box-shadow: 0 10px 40px rgba(120,90,60,.2); padding:16px}
+    .modal header{display:flex; gap:8px; align-items:center; justify-content:space-between; margin-bottom:8px}
+    .modal h2{margin:0; font-size:20px}
+    .modal .close{background:transparent; color:var(--sub); border:0; font-size:22px; cursor:pointer}
+    .links{display:flex; flex-direction:column; gap:8px; margin-top:8px}
+    .link{display:flex; gap:8px; align-items:flex-start; background:var(--alt); border:1px solid var(--muted); border-radius:12px; padding:10px}
+    .link b{font-weight:600}
+    .link small{color:var(--sub)}
+    .row-right{margin-left:auto; display:flex; align-items:center; gap:6px}
+    .iconbtn{background:transparent; border:1px solid var(--muted); border-radius:10px; padding:6px 8px; cursor:pointer}
+    .iconbtn.like{border-color:#cfe6d1; color:var(--like)}
+    .iconbtn.fav{border-color:#efd9ac; color:var(--fav)}
+    .count{font-size:12px; color:var(--sub)}
+    .cmt-wrap{margin:6px 0 0 0; padding:8px; background:#fff; border:1px solid var(--muted); border-radius:10px}
+    .cmt-head{display:flex; align-items:center; justify-content:space-between; color:var(--sub); font-size:12px}
+    .cmt-item{border-top:1px solid var(--muted); padding-top:6px; margin-top:6px}
+    .limiter{margin:8px 0; font-size:13px; color:var(--sub)}
+    form.inline{display:flex; gap:8px; flex-wrap:wrap; align-items:center}
+    form.inline input, form.inline select, form.inline textarea{padding:8px; border-radius:8px; border:1px solid var(--muted); background:var(--panel); color:var(--text)}
+    form.inline textarea{min-width:260px; min-height:60px}
+    .toast{position:fixed; bottom:16px; left:50%; transform:translateX(-50%); background:var(--accent-soft); border:1px solid #B9D8BE; color:var(--text); padding:10px 12px; border-radius:10px}
+    .muted{color:var(--sub)}
+    code.k{background:#efe7d6; padding:1px 4px; border-radius:4px; border:1px solid var(--muted)}
+  </style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>Cueillir & fabriquer — recettes & usages</h1>
+    <p>Herbier simple à cliquer. Cuisine, cosmétiques, DIY & entretien maison. <span class="tag" id="supporterTag">Supporter</span> <span id="dataTag" class="tag">Données : local</span></p>
+  </header>
+
+  <div class="toolbar">
+    <div class="search">
+      <input id="search" type="search" placeholder="Rechercher une plante…" />
+      <button class="clear" title="Effacer" onclick="ui.search.value=''; state.query=''; render()">✕</button>
+    </div>
+    <div class="seg" role="tablist" aria-label="Vue">
+      <button id="tabAZ" class="active" onclick="setMode('az')">A–Z</button>
+      <button id="tabSeason" onclick="setMode('season')">Saison</button>
+    </div>
+    <button class="btn" onclick="openSafety()">Sécurité</button>
+    <button class="btn primary" onclick="openAccount()" id="accountBtn">Mon compte</button>
+    <button id="modBtn" class="btn hidden" onclick="openModeration()">Modération</button>
+    <button id="settingsBtn" class="btn hidden" onclick="openSettings()">Source des données</button>
+    <button class="btn" id="resetFiltersToolbar" onclick="resetFilters()">Réinit. filtres</button>
+    <span class="tag" id="filtersIndicator">Filtres: 7/7</span>
+  </div>
+
+  <!-- Filtres par catégories de recettes/usages -->
+  <div id="typeFilters" class="chips" aria-label="Filtrer les types">
+    <button class="chip active" data-type="recette_sale" onclick="toggleTypeFilter(event)">Recettes salées</button>
+    <button class="chip active" data-type="recette_sucree" onclick="toggleTypeFilter(event)">Recettes sucrées</button>
+    <button class="chip active" data-type="boisson" onclick="toggleTypeFilter(event)">Boissons</button>
+    <button class="chip active" data-type="conservation" onclick="toggleTypeFilter(event)">Conservation</button>
+    <button class="chip active" data-type="cosmetique" onclick="toggleTypeFilter(event)">Cosmétiques</button>
+    <button class="chip active" data-type="entretien" onclick="toggleTypeFilter(event)">Entretien maison</button>
+    <button class="chip active" data-type="diy" onclick="toggleTypeFilter(event)">DIY (autres)</button>
+  </div>
+
+  <div id="seasonPicker" class="chips hidden" aria-label="Choisir les mois"></div>
+  <div id="list" class="grid" aria-live="polite"></div>
+
+  <footer>
+    <p class="warnline">⚠️ <b>Avertissement</b> — Cette app rassemble des <b>liens</b> vers des contenus externes (recettes & usages). Elle ne remplace pas l’identification botanique, l’avis d’un·e professionnel·le ou des recommandations de santé. Les informations sont fournies à titre indicatif. L’autrice ne saurait être tenue responsable d’un mauvais usage, d’erreurs, d’omissions ou des recettes proposées par des tiers. Respecte la réglementation locale, les zones protégées, les périodes de cueillette, et vérifie allergies/contre‑indications.</p>
+  </footer>
+</div>
+
+<!-- Overlays / Modals -->
+<div id="overlay" class="overlay hidden" onclick="closeAllModals()"></div>
+<div id="plantModal" class="modal hidden" role="dialog" aria-modal="true"></div>
+<div id="tipsModal" class="modal hidden" role="dialog" aria-modal="true"></div>
+<div id="settingsModal" class="modal hidden" role="dialog" aria-modal="true"></div>
+<div id="accountModal" class="modal hidden" role="dialog" aria-modal="true"></div>
+<div id="safetyModal" class="modal hidden" role="dialog" aria-modal="true"></div>
+<div id="moderationModal" class="modal hidden" role="dialog" aria-modal="true"></div>
+<div id="toast" class="toast hidden"></div>
+
+<script>
+/********************
+ *  CONFIG & CONSTS  *
+ ********************/
+const DEBUG = true; // mettre à false en prod
+const SCHEMA_VERSION = 'v1';
+const NS = 'plantesApp:'+SCHEMA_VERSION;
+const CATEGORIES = ['recette','boisson','conservation','cosmetique','entretien','diy'];
+const CATEGORY_LABEL = {recette:'Recette', boisson:'Boisson', cosmetique:'Cosmétique', conservation:'Conservation', entretien:'Entretien', diy:'DIY'};
+const FORMAT_LABEL = {article:'Article', video:'Vidéo', social:'Réseaux sociaux'};
+const FREE_LIMIT = 2; // liens visibles sans soutien
+const ADMIN_PIN = 'plantes'; // PIN admin
+const MONTHS = ['Jan','Fév','Mar','Avr','Mai','Juin','Juil','Aoû','Sep','Oct','Nov','Déc'];
+
+/********************
+ *      UI REF      *
+ ********************/
+const ui = {
+  list: document.getElementById('list'),
+  seasonPicker: document.getElementById('seasonPicker'),
+  tabAZ: document.getElementById('tabAZ'),
+  tabSeason: document.getElementById('tabSeason'),
+  search: document.getElementById('search'),
+  overlay: document.getElementById('overlay'),
+  plantModal: document.getElementById('plantModal'),
+  tipsModal: document.getElementById('tipsModal'),
+  settingsModal: document.getElementById('settingsModal'),
+  accountModal: document.getElementById('accountModal'),
+  safetyModal: document.getElementById('safetyModal'),
+  moderationModal: document.getElementById('moderationModal'),
+  toast: document.getElementById('toast'),
+  supporterTag: document.getElementById('supporterTag'),
+  dataTag: document.getElementById('dataTag'),
+  accountBtn: document.getElementById('accountBtn'),
+  modBtn: document.getElementById('modBtn'),
+  settingsBtn: document.getElementById('settingsBtn'),
+};
+
+/********************
+ *    UTILITAIRES   *
+ ********************/
+const strip = s=>s.normalize('NFD').replace(/[̀-ͯ]/g,'');
+const clean = s=>strip(String(s||'').toLowerCase());
+const escapeHtml = s=>(s||'').replace(/[&<>"']/g, c=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#039;"}[c]));
+const when = d=>new Date(d).toLocaleString();
+function hostOf(u){ try{ return new URL(u).hostname.replace(/^www\./,''); }catch(e){ return 'lien'; } }
+function clone(obj){ return JSON.parse(JSON.stringify(obj)); }
+
+/********************
+ *  LOCAL STORAGE   *
+ ********************/
+const LS = {
+  get(k,def){ try{ const v=localStorage.getItem(NS+':'+k); return v?JSON.parse(v):def; }catch(e){ return def; } },
+  set(k,v){ try{ localStorage.setItem(NS+':'+k, JSON.stringify(v)); }catch(e){ /* storage plein */ } },
+  del(k){ try{ localStorage.removeItem(NS+':'+k); }catch(e){} },
+  clearAll(){ Object.keys(localStorage).filter(k=>k.startsWith(NS+':')).forEach(k=>localStorage.removeItem(k)); }
+};
+
+/********************
+ *  DONNÉES INIT    *
+ ********************/
+// Jeu léger dans le canvas pour éviter la limite de taille. Charge plutôt un gros JSON distant.
+const DEFAULT_DATA = [
+  {id:'ail-des-ours', nom:'Ail des ours', latin:'Allium ursinum', mois:[3,4,5], parties:['feuilles','boutons','fleurs'], desc:"Vivace des sous-bois humides. Odeur d'ail, ombelles blanches.", photo:'https://upload.wikimedia.org/wikipedia/commons/e/e0/Allium_ursinum_flower.JPG', photoCredit:'Archenzo', photoSource:'https://commons.wikimedia.org/wiki/File:Allium_ursinum_flower.JPG', cautions:['Confusion avec muguet/colchique'], identVideo:'https://www.youtube.com/watch?v=SwkZDFTWJi8', identPhotos:[], liens:[
+    {titre:"Pesto à l’ail des ours (Éloge de la curiosité)", url:"https://elogedelacuriosite.com/nature-botanique-urbaine/recette-pesto-ail-des-ours/", auteur:"Éloge de la curiosité", categorie:"recette", format:"article", lang:"fr", sucre:false},
+    {titre:"Beurre d’ail des ours", url:"https://cuisinesauvage.org/recipe/beurre-dail-des-ours/", auteur:"Cuisine Sauvage", categorie:"recette", format:"article", lang:"fr", sucre:false}
+  ]},
+  {id:'ortie-dioique', nom:'Ortie dioïque', latin:'Urtica dioica', mois:[3,4,5,6,7,8,9,10], parties:['jeunes pousses','graines'], desc:"Plante urticante. Jeunes pousses et graines en cuisine.", photo:'https://upload.wikimedia.org/wikipedia/commons/0/0e/Urtica_dioica_FlowersCloseup_DehesaBoyaldePuertollano.jpg', photoCredit:'Javier martin (PD)', photoSource:'https://commons.wikimedia.org/wiki/File:Urtica_dioica_FlowersCloseup_DehesaBoyaldePuertollano.jpg', liens:[
+    {titre:"Soupe d’orties", url:"https://www.marmiton.org/recettes/recette_soupe-d-orties_22747.aspx", auteur:"Marmiton", categorie:"recette", format:"article", lang:"fr", sucre:false}
+  ]},
+  {id:'lierre-grimpant', nom:'Lierre grimpant (toxique)', latin:'Hedera helix', mois:[1,2,3,4,5,6,7,8,9,10,11,12], parties:['feuilles'], desc:"Liane persistante. Baies toxiques. Usage DIY uniquement.", photo:'https://upload.wikimedia.org/wikipedia/commons/0/0e/Hedera_helix_3zz.jpg', photoCredit:'CC BY-SA 4.0', photoSource:'https://commons.wikimedia.org/wiki/File:Hedera_helix_3zz.jpg', cautions:['Toxique, ne pas ingérer'], liens:[
+    {titre:"Lessive au lierre (décoction)", url:"https://www.ecoconso.be/fr/content/comment-faire-une-lessive-au-lierre", auteur:"écoconso", categorie:"entretien", format:"article", lang:"fr"}
+  ]}
+];
+
+/********************
+ *      ÉTAT        *
+ ********************/
+const state = {
+  mode:'az',
+  months: new Set([new Date().getMonth()+1]),
+  query:'',
+  data: [],
+  supporter: {active:false, amount:0, since:null},
+  remote: { url:'', autoLoad:false, lastSync:null, replace:false },
+  account: {email:null},
+  admin:false,
+  typeFilters: {recette_sale:true, recette_sucree:true, boisson:true, conservation:true, cosmetique:true, entretien:true, diy:true},
+};
+
+/********************
+ *   PERSISTENCE    *
+ ********************/
+function saveData(){ LS.set('data', state.data); }
+function saveSupporter(){ LS.set('supporter', state.supporter); ui.supporterTag.classList.toggle('hidden', !state.supporter.active); }
+function saveRemote(){ LS.set('remote', state.remote); updateDataTag(); }
+function saveAccount(){ LS.set('account', state.account); updateAdminUI(); }
+
+function loadAll(){
+  state.data = (LS.get('data')||DEFAULT_DATA).slice().sort((a,b)=>a.nom.localeCompare(b.nom));
+  state.supporter = LS.get('supporter', state.supporter); ui.supporterTag.classList.toggle('hidden', !state.supporter.active);
+  state.remote = LS.get('remote', state.remote); updateDataTag();
+  const acc = LS.get('account'); if(acc && acc.email){ state.account=acc; }
+  state.admin = !!LS.get('isAdmin', false);
+  updateAdminUI();
+  if(state.remote.url && state.remote.autoLoad && state.admin){ loadFromRemote(state.remote.url, {silent:true}); }
+  updateModerationCount();
+}
+
+function updateAdminUI(){
+  ui.accountBtn.textContent = state.account.email? `Mon compte (${state.account.email})` : 'Mon compte';
+  ui.modBtn.classList.toggle('hidden', !state.admin);
+  ui.settingsBtn.classList.toggle('hidden', !state.admin);
+  updateModerationCount();
+}
+
+function updateDataTag(){ if(state.remote && state.remote.url && state.admin){ const host = (()=>{ try{return new URL(state.remote.url).host.replace('www.','');}catch(e){return 'invalide';} })(); const whenTxt = state.remote.lastSync? new Date(state.remote.lastSync).toLocaleString() : 'jamais'; ui.dataTag.textContent = `Données : ${host} (sync ${whenTxt})`; } else { ui.dataTag.textContent = 'Données : local'; } }
+
+/********************
+ *  VOTES / FAVS / CMTS  *
+ ********************/
+function keyUser(){ return state.account.email || '_anonyme_'; }
+function getVotes(){ return LS.get('votesAll', {}); }
+function setVotes(obj){ LS.set('votesAll', obj); }
+function getFavs(){ return LS.get('favoritesAll', {}); }
+function setFavs(obj){ LS.set('favoritesAll', obj); }
+function getComments(){ return LS.get('commentsAll', []); }
+function setComments(arr){ LS.set('commentsAll', arr); }
+function getPending(){ return LS.get('pendingAll', []); }
+function setPending(arr){ LS.set('pendingAll', arr); updateModerationCount(); }
+function updateModerationCount(){ if(!state.admin){ ui.modBtn.textContent='Modération'; return; } const c=getPending().length; ui.modBtn.textContent = c>0? `Modération (${c})` : 'Modération'; }
+
+function linkKey(plantId, url){ return `${plantId}|${url}`; }
+function tallyFor(linkK){ const votesAll = getVotes(); let up=0, mine=0; for(const user in votesAll){ const v = votesAll[user]?.[linkK]; if(v===1) up++; if(user===keyUser()) mine=v||0; } return {up, mine}; }
+
+/********************
+ *    FILTRES       *
+ ********************/
+function toggleTypeFilter(evt){
+  const t = evt.currentTarget.getAttribute('data-type');
+  state.typeFilters[t] = !state.typeFilters[t];
+  evt.currentTarget.classList.toggle('active', !!state.typeFilters[t]);
+  updateFiltersIndicator();
+  render();
+}
+function linkMatchesType(l){
+  const T = state.typeFilters;
+  const noneChecked = !T.recette_sale && !T.recette_sucree && !T.boisson && !T.conservation && !T.cosmetique && !T.entretien && !T.diy;
+  if(noneChecked) return true; // fallback demandé
+  const cat = (l.categorie||'').toLowerCase();
+  if(cat==='recette'){
+    const wantSweet = !!T.recette_sucree; const wantSalty = !!T.recette_sale;
+    if(!wantSweet && !wantSalty) return false; // masquer si les 2 off
+    const isSweet = l.sucre===true; const isSalty = l.sucre===false;
+    if(isSweet) return wantSweet; if(isSalty) return wantSalty; return wantSweet || wantSalty;
+  }
+  if(cat==='boisson') return !!T.boisson;
+  if(cat==='conservation') return !!T.conservation;
+  if(cat==='cosmetique') return !!T.cosmetique;
+  if(cat==='entretien') return !!T.entretien;
+  return !!T.diy;
+}
+
+// Réinitialisation rapide des filtres (et recherche)
+function resetFilters(){
+  state.query='';
+  if(ui.search) ui.search.value='';
+  Object.keys(state.typeFilters).forEach(k=> state.typeFilters[k]=true);
+  document.querySelectorAll('#typeFilters .chip').forEach(ch=> ch.classList.add('active'));
+  updateFiltersIndicator();
+  toast('Filtres réinitialisés');
+  render();
+}
+
+function updateFiltersIndicator(){
+  const el = document.getElementById('filtersIndicator');
+  if(!el) return;
+  const keys = Object.keys(state.typeFilters);
+  const active = keys.filter(k=> state.typeFilters[k]).length;
+  el.textContent = `Filtres: ${active}/${keys.length}`;
+  el.style.borderColor = active<keys.length ? '#c08c2a' : 'var(--muted)';
+}
+  if(cat==='boisson') return !!T.boisson;
+  if(cat==='conservation') return !!T.conservation;
+  if(cat==='cosmetique') return !!T.cosmetique;
+  if(cat==='entretien') return !!T.entretien;
+  return !!T.diy;
+}
+
+/********************
+ *     RENDU        *
+ ********************/
+function setMode(m){ state.mode=m; ui.tabAZ.classList.toggle('active', m==='az'); ui.tabSeason.classList.toggle('active', m==='season'); ui.seasonPicker.classList.toggle('hidden', m!=='season'); render(); }
+
+function render(){
+  updateFiltersIndicator();
+  const q = clean(state.query);
+  let plants = state.data.filter(p=>!q || clean(p.nom).includes(q) || clean(p.latin||'').includes(q));
+  if(state.mode==='season'){ plants = plants.filter(p => (p.mois||[]).some(m=>state.months.has(m))); }
+  plants.sort((a,b)=>a.nom.localeCompare(b.nom));
+  ui.list.innerHTML = '';
+  if(plants.length===0){
+    const empty = document.createElement('div');
+    const msg = document.createElement('p'); msg.className='muted'; msg.textContent='Aucun résultat.'; empty.appendChild(msg);
+    const btn = document.createElement('button'); btn.id='resetFiltersBtn'; btn.className='btn'; btn.textContent='Réinitialiser les filtres'; btn.onclick=resetFilters; empty.appendChild(btn);
+    ui.list.appendChild(empty);
+    return;
+  }
+  for(const p of plants){ ui.list.appendChild(cardPlant(p)); }
+}
+  plants.sort((a,b)=>a.nom.localeCompare(b.nom));
+  ui.list.innerHTML = '';
+  if(plants.length===0){
+    const empty = document.createElement('div');
+    const msg = document.createElement('p'); msg.className='muted'; msg.textContent='Aucun résultat.'; empty.appendChild(msg);
+    const btn = document.createElement('button'); btn.id='resetFiltersBtn'; btn.className='btn'; btn.textContent='Réinitialiser les filtres'; btn.onclick=resetFilters; empty.appendChild(btn);
+    ui.list.appendChild(empty);
+    return;
+  }
+  for(const p of plants){ ui.list.appendChild(cardPlant(p)); }
+}
+  plants.sort((a,b)=>a.nom.localeCompare(b.nom));
+  ui.list.innerHTML = '';
+  if(plants.length===0){ ui.list.innerHTML = '<p class="muted">Aucun résultat.</p>'; return; }
+  for(const p of plants){ ui.list.appendChild(cardPlant(p)); }
+}
+
+function cardPlant(p){
+  const el = document.createElement('div'); el.className='card';
+  if(p.photo){ const img = document.createElement('img'); img.className='thumb'; img.alt = `Photo de ${p.nom}`; img.src=p.photo; el.appendChild(img); }
+  const title = document.createElement('div'); title.className='title'; title.innerHTML = `<h3>${p.nom}</h3> <span class="latin">${p.latin||''}</span>`;
+  const meta = document.createElement('div'); meta.className='meta';
+  const months = (p.mois||[]).map(m=>`<span class="pill" title="Saison">${MONTHS[m-1]}</span>`).join('');
+  const parts = (p.parties||[]).map(x=>`<span class="pill">${x}</span>`).join('');
+  const cautions = (p.cautions||[]).map(x=>`<span class="pill" style="border-color:#e6c899">⚠︎ ${x}</span>`).join('');
+  meta.innerHTML = months + parts + cautions;
+  el.append(title, meta);
+  el.onclick = ()=> openPlantModal(p.id);
+  return el;
+}
+
+/********************
+ *  MODALE PLANTE   *
+ ********************/
+function openPlantModal(plantId){
+  const p = state.data.find(x=>x.id===plantId); if(!p) return;
+  const supporter = !!state.supporter.active;
+  const items = (p.liens||[]).filter(linkMatchesType);
+  const visibles = supporter? items : items.slice(0, Math.max(FREE_LIMIT, items.filter(l=>!l.premium).length?FREE_LIMIT:items.length));
+  const hiddenCount = Math.max(0, items.length - visibles.length);
+
+  ui.plantModal.innerHTML = '';
+  const head = document.createElement('header');
+  head.innerHTML = `<h2>${p.nom} <span class="latin">${p.latin||''}</span></h2>`;
+  const close = document.createElement('button'); close.className='close'; close.innerHTML='✕'; close.onclick=closeAllModals; head.appendChild(close);
+
+  if(p.photo){
+    const ph = document.createElement('div');
+    ph.innerHTML = `<img class="thumb" alt="${p.nom}" src="${p.photo}"><div class="muted" style="font-size:12px;margin-top:4px">Photo : ${escapeHtml(p.photoCredit||'')} ${p.photoSource?`<a href="${p.photoSource}" target="_blank">(source)</a>`:''}</div>`;
+    ui.plantModal.appendChild(ph);
+  }
+
+  if(p.desc){ const t=document.createElement('p'); t.className='muted'; t.textContent=p.desc; ui.plantModal.appendChild(t); }
+
+  if(p.identVideo || (p.identPhotos&&p.identPhotos.length) || p.idGuideUrl){
+    const idBox = document.createElement('div'); idBox.className='links';
+    const row = document.createElement('div'); row.className='link';
+    const left = document.createElement('div'); left.innerHTML = '<div><b>Identifier cette plante</b><div class="muted">Vérifie les critères avant de cueillir.</div></div>';
+    const right = document.createElement('div'); right.className='row-right';
+    if(p.idGuideUrl){ const a=document.createElement('a'); a.className='btn'; a.textContent='Fiche d’identification'; a.href=p.idGuideUrl; a.target='_blank'; right.appendChild(a); }
+    if(p.identVideo){ const a=document.createElement('a'); a.className='btn'; a.textContent='Voir la vidéo'; a.href=p.identVideo; a.target='_blank'; right.appendChild(a); }
+    if(p.identPhotos && p.identPhotos.length){ for(const u of p.identPhotos.slice(0,2)){ const a=document.createElement('a'); a.className='btn'; a.textContent='Voir photo'; a.href=u; a.target='_blank'; right.appendChild(a);} }
+    row.append(left,right); idBox.appendChild(row); ui.plantModal.appendChild(idBox);
+  }
+
+  const linksWrap = document.createElement('div'); linksWrap.className='links';
+  if(visibles.length===0){ linksWrap.innerHTML = '<div class="muted">Aucun lien pour ces filtres.</div>'; }
+  for(const l of visibles){ linksWrap.appendChild(linkRow(p, l)); }
+
+  const limiter = document.createElement('div'); limiter.className='limiter';
+  if(hiddenCount>0){ limiter.innerHTML = `💡 <b>${hiddenCount}</b> autres liens. <button class="btn" onclick="openTips()">Soutenir pour tout voir</button>`; }
+
+  const add = document.createElement('form'); add.className='inline'; add.onsubmit = e=>{ e.preventDefault(); proposeLink(p.id, add); };
+  add.innerHTML = `
+    <span class="tag">Proposer un lien</span>
+    <input name="titre" required placeholder="Titre" />
+    <input name="url" required type="url" placeholder="https://…" />
+    <select name="categorie">
+      <option value="recette">Recette</option>
+      <option value="boisson">Boisson</option>
+      <option value="conservation">Conservation</option>
+      <option value="cosmetique">Cosmétique</option>
+      <option value="entretien">Entretien</option>
+      <option value="diy">DIY (autres)</option>
+    </select>
+    <select name="sucre">
+      <option value="">— type de recette —</option>
+      <option value="sale">Recette salée</option>
+      <option value="sucree">Recette sucrée</option>
+    </select>
+    <button class="btn primary" type="submit">Envoyer pour validation</button>
+  `;
+
+  // Admin : éditeur fiche (photo/texte/identification) + outils de debug
+  let adminBox = null; let hr = null;
+  if(state.admin){
+    adminBox = document.createElement('div'); adminBox.style.marginTop='10px';
+    hr = document.createElement('hr');
+    const details = document.createElement('details'); details.style.marginTop='8px';
+    const sum = document.createElement('summary'); sum.textContent = 'Éditer la fiche (admin)'; sum.style.cursor='pointer'; details.appendChild(sum);
+    const form = document.createElement('form'); form.className='inline'; form.onsubmit = (e)=>{ e.preventDefault(); savePlantForm(p.id, form); };
+    form.innerHTML = `
+      <div style="display:flex; flex-direction:column; gap:6px; width:100%">
+        <div class="muted">Mets à jour l'image et les infos sans toucher au code. Les fichiers restent localement.</div>
+        <label>URL d'image <input type="url" name="photoUrl" placeholder="https://…" value="${escapeHtml(p.photo||'')}" /></label>
+        <label>Crédit photo <input name="photoCredit" placeholder="Auteur·ice / collection" value="${escapeHtml(p.photoCredit||'')}" /></label>
+        <label>Source (licence) <input type="url" name="photoSource" placeholder="https://commons.wikimedia.org/..." value="${escapeHtml(p.photoSource||'')}" /></label>
+        <label>Description courte <textarea name="desc" placeholder="Petit texte de présentation…">${escapeHtml(p.desc||'')}</textarea></label>
+        <label>Fiche d’identification (URL) <input type="url" name="idGuide" placeholder="https://…" value="${escapeHtml(p.idGuideUrl||'')}" /></label>
+        <label>Vidéo d’identification (URL) <input type="url" name="idVideo" placeholder="https://…" value="${escapeHtml(p.identVideo||'')}" /></label>
+        <label>Photos d’identification (URLs, séparées par des virgules) <input type="text" name="idPhotos" placeholder="https://…, https://…" value="${escapeHtml((p.identPhotos||[]).join(', '))}" /></label>
+        <div style="display:flex; gap:8px; flex-wrap:wrap">
+          <button class="btn primary" type="submit">Enregistrer</button>
+          <button class="btn" type="reset">Réinitialiser</button>
+        </div>
+      </div>`;
+    details.appendChild(form);
+    adminBox.appendChild(details);
+  }
+
+  ui.plantModal.append(head, linksWrap, limiter, document.createElement('hr'), add);
+  if(adminBox){ ui.plantModal.appendChild(hr); ui.plantModal.appendChild(adminBox); }
+  openOverlay(ui.plantModal);
+}
+
+function linkRow(plant, l){
+  const row = document.createElement('div'); row.className='link';
+  const left = document.createElement('div');
+  left.innerHTML = `
+    <div><b>${escapeHtml(l.titre||l.url)}</b> · <small>${CATEGORY_LABEL[(l.categorie||'').toLowerCase()]||'Usage'} · ${FORMAT_LABEL[(l.format||'article')]} · ${hostOf(l.url)}</small></div>
+    <div class="muted">${l.auteur?('par '+escapeHtml(l.auteur)+' · '):''}${(l.lang||'fr').toUpperCase()}${l.premium? ' · <span class="tag">Plus</span>':''}${l.categorie==='recette' && (l.sucre===true||l.sucre===false)? ' · '+(l.sucre?'sucrée':'salée'):''}</div>
+  `;
+  const right = document.createElement('div'); right.className='row-right';
+  const lk = linkKey(plant.id, l.url);
+  const vote = tallyFor(lk);
+  const upBtn = document.createElement('button'); upBtn.className='iconbtn like'; upBtn.innerHTML = `👍 <span class="count">${vote.up}</span>`; upBtn.onclick = e=>{ e.stopPropagation(); castVote(lk, 1); openPlantModal(plant.id); };
+  const favBtn = document.createElement('button'); favBtn.className='iconbtn fav';
+  const favsAll = getFavs(); const mineFavs = favsAll[keyUser()]||{}; const isFav = !!mineFavs[lk];
+  favBtn.textContent = isFav? '★' : '☆';
+  favBtn.title = isFav? 'Retirer des favoris' : 'Ajouter aux favoris';
+  favBtn.onclick = e=>{ e.stopPropagation(); toggleFav(lk); openPlantModal(plant.id); };
+  const openBtn = document.createElement('a'); openBtn.className='btn'; openBtn.href=l.url; openBtn.target='_blank'; openBtn.rel='noopener'; openBtn.textContent='Ouvrir';
+  right.append(upBtn, favBtn, openBtn);
+
+  const comments = getComments().filter(c=>c.linkKey===lk);
+  const cWrap = document.createElement('div'); cWrap.className='cmt-wrap';
+  const cHead = document.createElement('div'); cHead.className='cmt-head'; cHead.innerHTML = `<span>Commentaires (<b>${comments.length}</b>)</span>`; cWrap.appendChild(cHead);
+  for(const c of comments){ const it = document.createElement('div'); it.className='cmt-item'; it.innerHTML = `<div class="muted">${escapeHtml(c.author)} · ${when(c.createdAt)}</div><div>${escapeHtml(c.text)}</div>`; if(state.admin || c.author===state.account.email){ const del = document.createElement('button'); del.className='iconbtn'; del.textContent='Supprimer'; del.onclick=()=>{ deleteComment(c.id); openPlantModal(plant.id); }; it.appendChild(del); } cWrap.appendChild(it); }
+  const form = document.createElement('form'); form.className='inline'; form.onsubmit = e=>{ e.preventDefault(); submitComment(lk, form); openPlantModal(plant.id); };
+  form.innerHTML = state.account.email ? `
+    <textarea name="text" required placeholder="Écrire un commentaire…"></textarea>
+    <button class="btn" type="submit">Publier</button>
+  ` : `<div class="muted">Connecte-toi pour commenter.</div><button class="btn" type="button" onclick="openAccount()">Se connecter</button>`;
+
+  row.append(left, right);
+  row.appendChild(cWrap);
+  cWrap.appendChild(form);
+  return row;
+}
+
+/********************
+ * PROPOSITIONS/LINKS
+ ********************/
+function proposeLink(plantId, form){
+  const titre=form.titre.value.trim(); const url=(form.url.value||'').trim(); const cat=(form.categorie.value||'').toLowerCase(); const sucreSel=form.sucre.value;
+  try{ new URL(url); }catch(e){ return toast('URL invalide'); }
+  const categorie = CATEGORIES.includes(cat)? cat : 'diy';
+  const pending = getPending();
+  const rec = { id: crypto.randomUUID? crypto.randomUUID(): Math.random().toString(36).slice(2), plantId, titre, url, categorie, format:'article', auteur: state.account.email||'Anonyme', createdAt: new Date().toISOString() };
+  if(categorie==='recette'){
+    if(sucreSel==='sucree') rec.sucre = true; else if(sucreSel==='sale') rec.sucre = false;
+  }
+  pending.unshift(rec);
+  setPending(pending); form.reset(); toast('Merci ! Proposition envoyée en validation.');
+}
+
+/********************
+ *  VOTES/FAVS/CMTS
+ ********************/
+function castVote(linkK, val){ if(!state.account.email){ toast('Connecte-toi pour voter'); return; } const votes = getVotes(); const me = keyUser(); votes[me] ||= {}; votes[me][linkK] = (votes[me][linkK]===val? 0 : val); setVotes(votes); toast('Vote enregistré'); }
+function toggleFav(linkK){ if(!state.account.email){ toast('Connecte-toi pour enregistrer'); return; } const favs = getFavs(); const me = keyUser(); favs[me] ||= {}; favs[me][linkK] = !favs[me][linkK]; setFavs(favs); toast(favs[me][linkK]?'Ajouté aux favoris':'Retiré des favoris'); }
+function submitComment(linkK, form){ if(!state.account.email){ toast('Connecte-toi'); return; } const text = form.text.value.trim(); if(!text) return; const list = getComments(); list.unshift({id: crypto.randomUUID? crypto.randomUUID(): Math.random().toString(36).slice(2), linkKey:linkK, author:state.account.email, text, createdAt:new Date().toISOString()}); setComments(list); form.reset(); toast('Commentaire publié'); }
+function deleteComment(id){ const list = getComments().filter(c=>c.id!==id); setComments(list); toast('Commentaire supprimé'); }
+
+/********************
+ *    TIPS / DON    *
+ ********************/
+function openTips(){ ui.tipsModal.innerHTML=''; const head = document.createElement('header'); head.innerHTML='<h2>Soutenir l’app</h2>'; const close = document.createElement('button'); close.className='close'; close.innerHTML='✕'; close.onclick=closeAllModals; head.appendChild(close); const body = document.createElement('div'); if(state.supporter.active){ body.innerHTML = `<p class="muted">Merci pour ton soutien de <b>${state.supporter.amount.toFixed(2)} €</b>/mois. Toutes les recettes sont visibles sur cet appareil.</p>`; const stop = document.createElement('button'); stop.className='btn'; stop.textContent='Désactiver'; stop.onclick=()=>{ state.supporter={active:false, amount:0, since:null}; saveSupporter(); toast('Désactivé'); closeAllModals(); render(); }; body.appendChild(stop); } else { const p = document.createElement('p'); p.className='muted'; p.innerHTML = `L’app reste <b>gratuite</b>. Tu peux contribuer <b>librement</b> pour tout débloquer (<i>sur l’appareil</i>).`; const form = document.createElement('form'); form.className='inline'; form.onsubmit = e=>{ e.preventDefault(); const amount = parseFloat(form.montant.value); if(!isFinite(amount)||amount<=0){ toast('Montant invalide'); return; } state.supporter={active:true, amount, since:new Date().toISOString()}; saveSupporter(); toast('Merci !'); closeAllModals(); render(); }; form.innerHTML = ` <input name="montant" type="number" step="0.5" min="1" placeholder="Montant mensuel en €" required /> <button class="btn primary" type="submit">Activer</button> <span class="muted">aucune donnée envoyée</span> `; body.appendChild(p); body.appendChild(form); } ui.tipsModal.appendChild(head); ui.tipsModal.appendChild(body); openOverlay(ui.tipsModal); }
+
+/********************
+ *   VALIDATION     *
+ ********************/
+function normalizeLink(l){ const o={...l}; o.categorie = CATEGORIES.includes((o.categorie||'').toLowerCase())? (o.categorie||'').toLowerCase() : 'diy'; if(o.categorie!=='recette') delete o.sucre; o.format = (o.format||'article'); return o; }
+function normalizePlant(p){ const o={...p}; o.id = String(o.id||'').trim(); o.nom = String(o.nom||'').trim(); o.liens = Array.isArray(o.liens)? o.liens.map(normalizeLink) : []; if(!Array.isArray(o.mois)) o.mois=[]; if(!Array.isArray(o.parties)) o.parties=[]; if(!Array.isArray(o.cautions)) o.cautions=[]; if(!Array.isArray(o.identPhotos)) o.identPhotos=[]; return o; }
+function validateData(arr){ const errors=[]; if(!Array.isArray(arr)){ return {ok:false, errors:['Racine: tableau attendu'], data:[]}; } const out=[]; const seenIds=new Set(); arr.forEach((raw,idx)=>{ const p=normalizePlant(raw); if(!p.id) errors.push(`#${idx}: champ id manquant`); if(!p.nom) errors.push(`#${idx}: champ nom manquant`); if(seenIds.has(p.id)) errors.push(`#${idx}: id dupliqué « ${p.id} »`); seenIds.add(p.id); // liens
+    const seenLinks=new Set(); p.liens.forEach((l,j)=>{ try{ new URL(l.url); }catch(e){ errors.push(`#${idx}.liens[${j}]: URL invalide`); } const key=l.url; if(seenLinks.has(key)) errors.push(`#${idx}.liens[${j}]: lien dupliqué`); seenLinks.add(key); }); out.push(p); });
+  return {ok:errors.length===0, errors, data:out};
+}
+
+/********************
+ *   SOURCE DONNÉES *
+ ********************/
+function openSettings(){ if(!state.admin){ toast('Réservé à l’admin'); openAccount(); return; } ui.settingsModal.innerHTML=''; const head = document.createElement('header'); head.innerHTML='<h2>Source des données (admin)</h2>'; const close = document.createElement('button'); close.className='close'; close.innerHTML='✕'; close.onclick=closeAllModals; head.appendChild(close); const body = document.createElement('div');
+  const info = document.createElement('div'); info.innerHTML = `<p><b>But :</b> charger/mettre à jour la base via un <code class="k">plantes.json</code> public (GitHub Pages, Netlify, ton site). Pas de dépendances serveur.</p>`;
+  const form = document.createElement('form'); form.className='inline'; form.onsubmit = async e=>{ e.preventDefault(); const url=form.url.value.trim(); await loadFromRemote(url, {replace: form.mode.value==='replace'}); state.remote.url=url; state.remote.autoLoad=form.auto.checked; state.remote.replace=(form.mode.value==='replace'); saveRemote(); closeAllModals(); };
+  form.innerHTML = `
+    <input name="url" type="url" placeholder="https://exemple.github.io/plantes.json" style="min-width:340px" value="${escapeHtml(state.remote.url||'')}" required />
+    <select name="mode">
+      <option value="merge" ${!state.remote.replace?'selected':''}>Fusionner par id</option>
+      <option value="replace" ${state.remote.replace?'selected':''}>Remplacer entièrement</option>
+    </select>
+    <label style="display:flex;align-items:center;gap:6px"><input type="checkbox" name="auto" ${state.remote.autoLoad?'checked':''}/> Charger au démarrage (admin)</label>
+    <button class="btn" type="button" onclick="testRemote(this.form)">Tester</button>
+    <button class="btn" type="button" onclick="refreshRemote(this.form)">Rafraîchir</button>
+    <button class="btn primary" type="submit">Charger</button>
+    <button class="btn" type="button" onclick="exportData()">Exporter les données</button>
+    <button class="btn danger" type="button" onclick="resetLocal()">Réinitialiser local</button>
+  `;
+  const help = document.createElement('div'); help.className='muted'; help.innerHTML = `<p>Format minimal du JSON :</p><pre>[{ "id":"ail-des-ours", "nom":"Ail des ours", "liens":[{"titre":"…","url":"https://…","categorie":"recette|boisson|conservation|cosmetique|entretien|diy","sucre":true|false}] }]</pre>`;
+  body.appendChild(info); body.appendChild(form); body.appendChild(help);
+  ui.settingsModal.appendChild(head); ui.settingsModal.appendChild(body); openOverlay(ui.settingsModal);
+}
+
+async function testRemote(form){ const url = (form.url.value||'').trim(); if(!url) return toast('Saisis une URL'); try{ const r=await fetch(url+(url.includes('?')?'&':'?')+'t='+Date.now(),{cache:'no-store'}); if(!r.ok) throw new Error('HTTP '+r.status); const j=await r.json(); const v=validateData(j); if(!v.ok) throw new Error('JSON invalide: '+v.errors.slice(0,3).join(' | ')); toast('OK : '+v.data.length+' éléments'); }catch(err){ toast('Échec : '+err.message); if(DEBUG) console.error(err); } }
+async function refreshRemote(form){ const url=(form.url.value||'').trim()||state.remote.url; if(!url) return toast('Aucune URL'); await loadFromRemote(url, {replace: form.mode.value==='replace'}); }
+async function loadFromRemote(url,{silent=false, replace=false}={}){ try{ const r=await fetch(url+(url.includes('?')?'&':'?')+'t='+Date.now(),{cache:'no-store'}); if(!r.ok) throw new Error('HTTP '+r.status); const incomingRaw=await r.json(); const v=validateData(incomingRaw); if(!v.ok) throw new Error('JSON invalide: '+v.errors.join(' | ')); const incoming=v.data; let next=[]; if(replace){ next = incoming; } else { const map=new Map(state.data.map(p=>[p.id, clone(p)])); for(const p of incoming){ const prev = map.get(p.id) || {}; const merged = {...prev, ...p}; // dédupliquer liens par URL
+      const urls = new Set(); merged.liens = (merged.liens||[]).filter(l=>{ if(urls.has(l.url)) return false; urls.add(l.url); return true; }); map.set(p.id, merged); }
+      next=[...map.values()]; }
+    next.sort((a,b)=>a.nom.localeCompare(b.nom)); state.data = next; saveData(); state.remote.url=url; state.remote.lastSync=new Date().toISOString(); saveRemote(); if(!silent) toast('Données mises à jour'); render(); }catch(err){ if(!silent) toast('Impossible : '+err.message); if(DEBUG) console.error(err); } }
+function disableRemote(){ state.remote={url:'', autoLoad:false, lastSync:null, replace:false}; saveRemote(); toast('Source distante désactivée'); }
+function exportData(){ const payload = JSON.stringify(state.data, null, 2); const blob = new Blob([payload], {type:'application/json'}); const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='plantes.json'; a.click(); URL.revokeObjectURL(a.href); }
+function resetLocal(){ if(!confirm('Effacer toutes les données locales (favoris, commentaires, propositions, etc.) ?')) return; LS.clearAll(); toast('Local réinitialisé. Recharge la page.'); }
+
+/********************
+ *  SÉCURITÉ/MENT.  *
+ ********************/
+function openSafety(){ ui.safetyModal.innerHTML=''; const head = document.createElement('header'); head.innerHTML='<h2>Mentions & sécurité</h2>'; const close = document.createElement('button'); close.className='close'; close.innerHTML='✕'; close.onclick=closeAllModals; head.appendChild(close); const body = document.createElement('div'); body.innerHTML = ` <ul> <li>Cette app <b>référence</b> des liens externes. Les contenus restent la responsabilité de leurs auteur·ices.</li> <li>Informations fournies à <b>titre indicatif</b>.</li> <li>Pas d’<b>avis médical</b> ni d’identification : vérifie toujours la plante (critères, confusions, statut protégé).</li> <li>Respecte la <b>législation</b> (zones, quantités, périodes). Teste en petites quantités et <b>attention aux allergies</b>.</li> <li>Tu restes <b>responsable</b> de tes choix de cueillette et de préparation.</li> </ul>`; ui.safetyModal.appendChild(head); ui.safetyModal.appendChild(body); openOverlay(ui.safetyModal); }
+
+/********************
+ *   MODÉRATION     *
+ ********************/
+function openModeration(){ if(!state.admin){ toast('Réservé à l’admin'); return; } ui.moderationModal.innerHTML=''; const head = document.createElement('header'); head.innerHTML='<h2>Modération — propositions en attente</h2>'; const close = document.createElement('button'); close.className='close'; close.innerHTML='✕'; close.onclick=closeAllModals; head.appendChild(close); const body = document.createElement('div'); const list = getPending(); if(list.length===0){ body.innerHTML = '<p class="muted">Aucune proposition en attente.</p>'; } else { const wrap = document.createElement('div'); wrap.className='links'; for(const s of list){ const plant = state.data.find(p=>p.id===s.plantId); const row = document.createElement('div'); row.className='link'; row.innerHTML = `<div><b>${escapeHtml(s.titre||s.url)}</b> · <small>${CATEGORY_LABEL[(s.categorie||'').toLowerCase()]||'Usage'} · ${hostOf(s.url)}</small><div class="muted">Plante : <b>${plant?plant.nom:s.plantId}</b> · proposé par ${escapeHtml(s.auteur||'Anonyme')} · ${when(s.createdAt)}${s.categorie==='recette' && (s.sucre===true||s.sucre===false)? ' · '+(s.sucre?'sucrée':'salée'):''}</div></div>`; const right = document.createElement('div'); right.className='row-right'; const open = document.createElement('a'); open.className='btn'; open.textContent='Ouvrir'; open.href=s.url; open.target='_blank'; const approve = document.createElement('button'); approve.className='btn'; approve.textContent='Valider'; approve.onclick=()=>{ approvePending(s.id); openModeration(); }; const reject = document.createElement('button'); reject.className='btn'; reject.textContent='Refuser'; reject.onclick=()=>{ rejectPending(s.id); openModeration(); }; right.append(open, approve, reject); row.appendChild(right); wrap.appendChild(row); } body.appendChild(wrap); } ui.moderationModal.appendChild(head); ui.moderationModal.appendChild(body); openOverlay(ui.moderationModal); }
+function approvePending(id){ const list=getPending(); const s=list.find(x=>x.id===id); if(!s) return; const p = state.data.find(x=>x.id===s.plantId); if(!p) return; (p.liens ||= []).unshift({titre:s.titre, url:s.url, categorie:s.categorie, format:s.format||'article', auteur:s.auteur||'Anonyme', lang:'fr', sucre:s.sucre}); saveData(); setPending(list.filter(x=>x.id!==id)); toast('Proposition validée'); render(); }
+function rejectPending(id){ setPending(getPending().filter(x=>x.id!==id)); toast('Proposition refusée'); }
+
+/********************
+ *   COMPTE/ADMIN   *
+ ********************/
+async function sha(s){ const b=new TextEncoder().encode(s); const h=await crypto.subtle.digest('SHA-256', b); return Array.from(new Uint8Array(h)).map(x=>x.toString(16).padStart(2,'0')).join(''); }
+function openAccount(){ ui.accountModal.innerHTML=''; const head = document.createElement('header'); head.innerHTML='<h2>Mon compte</h2>'; const close = document.createElement('button'); close.className='close'; close.innerHTML='✕'; close.onclick=closeAllModals; head.appendChild(close); const body = document.createElement('div'); if(!state.account.email){ const p = document.createElement('p'); p.className='muted'; p.innerHTML = `Compte local (email + mot de passe) pour voter, commenter, enregistrer tes favoris. Rien n’est envoyé sur Internet.`; const form = document.createElement('form'); form.className='inline'; form.onsubmit = async e=>{ e.preventDefault(); const email=form.email.value.trim().toLowerCase(); const pass=form.pass.value; if(!email||!pass) return; const db=LS.get('accountDb',{}); const hash=await sha(pass); if(db[email]){ if(db[email].hash!==hash) return toast('Mot de passe incorrect'); } else { db[email]={hash, createdAt:new Date().toISOString()}; LS.set('accountDb', db); } state.account={email}; saveAccount(); toast('Connecté'); closeAllModals(); render(); };
+    form.innerHTML = ` <input name="email" type="email" placeholder="ton@email" required /> <input name="pass" type="password" placeholder="mot de passe" required /> <button class="btn primary" type="submit">Entrer</button> <span class="muted">compte local</span> `; body.append(p, form); } else { const info = document.createElement('p'); info.innerHTML = `Connecté en tant que <b>${state.account.email}</b>.`;
+    const actions = document.createElement('div'); actions.style.display='flex'; actions.style.gap='8px'; actions.style.flexWrap='wrap';
+    const logout = document.createElement('button'); logout.className='btn'; logout.textContent='Se déconnecter'; logout.onclick=()=>{ state.account={email:null}; saveAccount(); toast('Déconnecté'); closeAllModals(); render(); };
+    const admin = document.createElement('form'); admin.className='inline'; admin.onsubmit = e=>{ e.preventDefault(); if(admin.pin.value===ADMIN_PIN){ state.admin=true; LS.set('isAdmin', true); updateAdminUI(); toast('Mode admin activé'); } else { toast('PIN incorrect'); } };
+    admin.innerHTML = ` <input name="pin" placeholder="PIN admin" /> <button class="btn" type="submit">Activer admin</button> <span class="muted">PIN : \"plantes\"</span>`;
+    const openSettingsBtn = document.createElement('button'); openSettingsBtn.className='btn'; openSettingsBtn.textContent='Source des données (admin)'; openSettingsBtn.onclick=()=>{ if(!state.admin){ toast('Active d’abord le mode admin'); } else { openSettings(); } };
+    actions.append(logout, admin, openSettingsBtn);
+    body.append(info, actions); }
+  ui.accountModal.append(head, body); openOverlay(ui.accountModal); }
+
+/********************
+ * OVERLAY & TOAST  *
+ ********************/
+function openOverlay(modal){ ui.overlay.classList.remove('hidden'); modal.classList.remove('hidden'); }
+function closeAllModals(){ ui.overlay.classList.add('hidden'); ui.plantModal.classList.add('hidden'); ui.tipsModal.classList.add('hidden'); ui.settingsModal.classList.add('hidden'); ui.accountModal.classList.add('hidden'); ui.safetyModal.classList.add('hidden'); ui.moderationModal.classList.add('hidden'); }
+function toast(msg){ ui.toast.textContent=msg; ui.toast.classList.remove('hidden'); setTimeout(()=>ui.toast.classList.add('hidden'), 1800); }
+
+/********************
+ *   MOIS PICKER    *
+ ********************/
+(function initMonths(){ for(let m=1;m<=12;m++){ const chip = document.createElement('button'); chip.type='button'; chip.className='btn'+(state.months.has(m)?' primary':''); chip.textContent=MONTHS[m-1]; chip.onclick=()=>{ if(state.months.has(m)) state.months.delete(m); else state.months.add(m); chip.classList.toggle('primary'); render(); }; ui.seasonPicker.appendChild(chip); } })();
+
+/********************
+ *   RECHERCHE      *
+ ********************/
+let searchTimer=null; ui.search.addEventListener('input', e=>{ clearTimeout(searchTimer); searchTimer=setTimeout(()=>{ state.query = e.target.value; render(); }, 80); });
+
+/********************
+ *      BOOT        *
+ ********************/
+loadAll();
+updateFiltersIndicator();
+render();
+
+/********************
+ *     TESTS        *
+ ********************/
+if(DEBUG){
+  (function runTests(){
+    const results = [];
+    function assert(name, cond){ const ok = !!cond; results.push({name, ok}); if(!ok) console.error('❌', name); else console.log('✅', name); }
+
+    // Test: toggle filtre
+    const chip = document.querySelector('[data-type="boisson"]');
+    assert('Chip boisson existe', !!chip);
+    const wasActive = state.typeFilters.boisson; const hadClass = chip.classList.contains('active');
+    toggleTypeFilter({currentTarget: chip});
+    assert('Toggle boisson change le state', state.typeFilters.boisson !== wasActive);
+    assert('Toggle boisson change la classe', chip.classList.contains('active') !== hadClass);
+    toggleTypeFilter({currentTarget: chip}); // revert
+
+    // Test: indicateur de filtres
+    resetFilters();
+    const ind = document.getElementById('filtersIndicator');
+    assert('Indicateur présent', !!ind);
+    assert('Indicateur 7/7 après reset', /7\/7/.test(ind.textContent));
+    toggleTypeFilter({currentTarget: document.querySelector('[data-type="boisson"]')});
+    assert('Indicateur 6/7 si 1 off', /6\/7/.test(ind.textContent));
+    toggleTypeFilter({currentTarget: document.querySelector('[data-type="boisson"]')});
+
+    // Test: logique salé/sucré
+    const T = {...state.typeFilters};
+    state.typeFilters.recette_sucree = false; state.typeFilters.recette_sale = true;
+    assert('sucré refusé', linkMatchesType({categorie:'recette', sucre:true})===false);
+    assert('salé accepté', linkMatchesType({categorie:'recette', sucre:false})===true);
+    state.typeFilters.recette_sucree = false; state.typeFilters.recette_sale = false;
+    assert('deux off => masque recettes', linkMatchesType({categorie:'recette', sucre:true})===false);
+    // Rien coché du tout => tout afficher
+    const snap = {...state.typeFilters};
+    state.typeFilters = {recette_sale:false, recette_sucree:false, boisson:false, conservation:false, cosmetique:false, entretien:false, diy:false};
+    assert('rien coché => boisson visible', linkMatchesType({categorie:'boisson'})===true);
+    state.typeFilters = snap;
+
+    // Test: recherche sans résultat -> message et bouton reset
+    const qSave = state.query; state.query = '___aucune_plante___'; render();
+    assert('Affiche Aucun résultat', (ui.list.innerText||'').toLowerCase().includes('aucun résultat'));
+    assert('Bouton reset visible', !!document.getElementById('resetFiltersBtn'));
+    document.getElementById('resetFiltersBtn').click();
+    assert('Reset rétablit des résultats', ui.list.children.length>0);
+    state.query = qSave; render();
+
+    // Test: Tri A–Z côté UI
+    const names = Array.from(document.querySelectorAll('#list .title h3')).map(n=>n.textContent.trim());
+    const sorted = names.slice().sort((a,b)=>a.localeCompare(b));
+    assert('Tri A–Z sur l’UI', JSON.stringify(names)===JSON.stringify(sorted));
+
+    // Test: Saison — février contient lierre, pas plantain
+    const prevMode = state.mode; const prevMonths = new Set(state.months);
+    setMode('season'); state.months = new Set([2]); render();
+    const t = ui.list.innerText.toLowerCase();
+    assert('Saison: inclut lierre en février', t.includes('lierre grimpant'));
+    assert('Saison: exclut plantain en février', !t.includes('plantain'));
+    // restore
+    state.months = prevMonths; setMode(prevMode); render();
+
+    console.log('Tests:', results);
+  })();
+}
+</script>
+</body>
+</html>
